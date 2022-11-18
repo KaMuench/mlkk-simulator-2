@@ -1,0 +1,50 @@
+[
+  {
+    "event": {
+      "event_id": 1,
+      "title": "Pizza essen",
+      "description": "Wollte euch zum Pizza essen einladen",
+      "date": "2022-12-01T11:32:00",
+      "date_visible": true,
+      "attendees_visible": true,
+      "address": null,
+      "amount_attendees": 0
+    },
+    "attending": false,
+    "favourites": false
+  },
+  {
+    "event": {
+      "event_id": 2,
+      "title": "Film gucken",
+      "description": "Heute werden wir Sing 1 angucken\nBitte bringt reichlich Snacks mit :D",
+      "date": "2022-12-17T18:00:00",
+      "date_visible": false,
+      "attendees_visible": false,
+      "address": null,
+      "amount_attendees": 0
+    },
+    "attending": false,
+    "favourites": false
+  },
+  {
+    "event": {
+      "event_id": 3,
+      "title": "Spazieren",
+      "description": "Zusammen im Zuffenhausener Stadtwald spazieren gehen",
+      "date": "2022-11-01T11:20:00",
+      "date_visible": true,
+      "attendees_visible": true,
+      "address": {
+        "address_id": 1,
+        "street": "Markgröninger Straße",
+        "house_number": "50",
+        "post_code": "70435",
+        "city": "Stuttgart"
+      },
+      "amount_attendees": 0
+    },
+    "attending": false,
+    "favourites":false
+  }
+]
