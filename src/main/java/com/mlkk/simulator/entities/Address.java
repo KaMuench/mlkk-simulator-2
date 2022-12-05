@@ -30,11 +30,11 @@ public class Address implements Serializable {
 
     public String toJson() {
         return "{\n" +
-                "\t\"address_id\": " + id + ",\n" +
-                "\t\"street\": \"" + street + "\",\n" +
-                "\t\"house_number\": " + hNumber + ",\n" +
-                "\t\"post_code\": " + posCode + ",\n" +
-                "\t\"city\": \"" + city + "\"\n" +
-                "}";
+                "\t\t\t\t\"address_id\": " + id + ",\n" +
+                "\t\t\t\t\"street\": \"" + street + "\",\n" +
+                "\t\t\t\t\"house_number\": " + hNumber + ",\n" +
+                "\t\t\t\t\"post_code\": " + posCode + ",\n" +
+                "\t\t\t\t\"city\": \"" + city + "\"\n" +
+                "\t\t\t}";
     }
 }

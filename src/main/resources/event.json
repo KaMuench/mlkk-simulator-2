@@ -8,7 +8,8 @@
       "date_visible": true,
       "attendees_visible": true,
       "address": null,
-      "amount_attendees": 0
+      "amount_attendees": 0,
+      "contact_email": "muench.kaleb@gmail.com"
     },
     "attending": false,
     "favourites": false
@@ -22,7 +23,8 @@
       "date_visible": false,
       "attendees_visible": false,
       "address": null,
-      "amount_attendees": 0
+      "amount_attendees": 0,
+      "contact_email": "muench.kaleb@gmail.com"
     },
     "attending": false,
     "favourites": false
@@ -42,7 +44,8 @@
         "post_code": "70435",
         "city": "Stuttgart"
       },
-      "amount_attendees": 0
+      "amount_attendees": 0,
+      "contact_email": "muench.kaleb@gmail.com"
     },
     "attending": false,
     "favourites":false
