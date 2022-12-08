@@ -93,10 +93,10 @@ public class Controller {
             if(a.getValue().getToken().equals(token) && a.getValue().getId() == accId && events.containsKey(eventId)) {
                 if(a.getValue().getMSignedUpForEvents().containsKey(eventId)) {
                     a.getValue().getMSignedUpForEvents().remove(eventId);
-                    System.out.println("Signed out from event: " + a.getValue().getMSignedUpForEvents());
+                    System.out.println("Signed out from event: " + eventId + " " + a.getValue().getMSignedUpForEvents());
                 } else {
                     a.getValue().getMSignedUpForEvents().put(eventId, null);
-                    System.out.println("Signed up for event: " + a.getValue().getMSignedUpForEvents());
+                    System.out.println("Signed up for event: " + eventId + " " + a.getValue().getMSignedUpForEvents());
                 }
                 resp.setStatus(HttpServletResponse.SC_OK);
                 return;
@@ -109,12 +109,12 @@ public class Controller {
     public void favour(@RequestParam("account_id") int accId, @RequestParam("event_id") int eventId, @RequestParam("token") String token, HttpServletResponse resp) throws IOException {
         for(Map.Entry<Integer,Account> a : list.entrySet()) {
             if(a.getValue().getToken().equals(token) && a.getValue().getId() == accId && events.containsKey(eventId)) {
-                if(a.getValue().getMSignedUpForEvents().containsKey(eventId)) {
-                    a.getValue().getMSignedUpForEvents().remove(eventId);
-                    System.out.println("Favourite List removed: " + a.getValue().getMSignedUpForEvents());
+                if(a.getValue().getMFavorites().containsKey(eventId)) {
+                    a.getValue().getMFavorites().remove(eventId);
+                    System.out.println("Favourite List removed: " + eventId + " " + a.getValue().getMSignedUpForEvents());
                 } else {
-                    a.getValue().getMSignedUpForEvents().put(eventId, null);
-                    System.out.println("Favourite List added: " + a.getValue().getMSignedUpForEvents());
+                    a.getValue().getMFavorites().put(eventId, null);
+                    System.out.println("Favourite List added: " + eventId + " " + a.getValue().getMSignedUpForEvents());
                 }
                 resp.setStatus(HttpServletResponse.SC_OK);
                 return;
@@ -139,11 +139,11 @@ public class Controller {
     @GetMapping("event/download_image")
     public void downloadImage(@RequestParam("event_id") int eventId, @RequestParam("token") String token, HttpServletResponse resp) {
         if(events.containsKey(eventId) && list.values().stream().anyMatch(a -> a.getToken().equals(token))) {
-            try(FileInputStream fis = new FileInputStream(eventId + ".jpg");
+            try(FileInputStream fis = new FileInputStream(eventId + ".png");
                 BufferedInputStream bus = new BufferedInputStream(fis)) {
                 byte[] image = bus.readAllBytes();
                 resp.getOutputStream().write(image);
-                resp.setContentType("image/jpg");
+                resp.setContentType("image/png");
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.getOutputStream().close();
                 System.out.println("Image: " + eventId + " was downloaded");
