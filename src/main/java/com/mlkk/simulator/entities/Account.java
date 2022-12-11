@@ -14,6 +14,7 @@ public class Account {
     private String surName;
     private String email;
     private String psw;
+    private boolean superuser;
 
     private String token;
 
@@ -22,12 +23,13 @@ public class Account {
 
     private int id;
 
-    public Account(String name, String surname, String email, String pws, int id) {
+    public Account(String name, String surname, String email, String pws, int id, boolean superuser) {
         this.name = name;
         this.surName = surname;
         this.email = email;
         this.psw = pws;
         this.id = id;
+        this.superuser = superuser;
         mFavorites = new HashMap<>();
         mSignedUpForEvents = new HashMap<>();
     }
@@ -39,11 +41,11 @@ public class Account {
 
     public String toJson() {
         return "{\n" +
-                "\t\"account_id\":\"" + id + "\",\n" +
+                "\t\"account_id\":" + id + ",\n" +
                 "\t\"name\":\"" + name + "\",\n" +
                 "\t\"surname\":\"" + surName + "\",\n" +
                 "\t\"email\":\"" + email + "\",\n" +
-                "\t\"token\":\"" + token + "\"\n" +
+                "\t\"superuser\":" + superuser + "\n" +
                 "}";
     }
 

@@ -3,10 +3,13 @@ package com.mlkk.simulator;
 import com.mlkk.simulator.entities.Account;
 import com.mlkk.simulator.entities.Address;
 import com.mlkk.simulator.entities.Event;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.springframework.web.bind.annotation.*;
 
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -21,9 +24,12 @@ public class Controller {
 
 
     @GetMapping("account/get_events")
-    public void getPersonalisedEvents(@RequestParam("account_id") int id, @RequestParam("token") String token, HttpServletResponse resp) throws IOException {
+    public void getPersonalisedEvents(@RequestParam("account_id") int id, HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String token = req.getHeader("remember-me");
+
         for(Map.Entry<Integer,Account> a : list.entrySet()) {
             if(a.getValue().getToken().equals(token) && a.getValue().getId() == id) {
+                resp.setCharacterEncoding("UTF-8");
                 resp.setContentType("application/json");
                 resp.setStatus(HttpServletResponse.SC_OK);
                 String json = createJson(id);
@@ -33,24 +39,35 @@ public class Controller {
                 return;
             }
         }
+        System.out.println("account_id: " + id + " token: " + token);
         resp.setStatus(HttpServletResponse.SC_CONFLICT);
     }
 
     @PostMapping("registration/new_account")
-    public void createAccount(@RequestParam("name") String name, @RequestParam("surname") String surname, @RequestParam("email") String email, @RequestParam("password") String password, HttpServletResponse resp) {
+    public void createAccount(HttpServletRequest req, HttpServletResponse resp) throws IOException{
+        JSONObject json =  new JSONObject(new JSONTokener(req.getInputStream()));
+        String name = json.getString("name");
+        String surname = json.getString("surname");
+        String password = json.getString("password");
+        String email = json.getString("email");
+
         for(Map.Entry<Integer,Account> a : list.entrySet()) {
             if(a.getValue().getEmail().equals(email)) {
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
                 return;
             }
         }
-        list.put(ID_COUNTER, new Account(name, surname, email, password, ID_COUNTER));
+        list.put(ID_COUNTER, new Account(name, surname, email, password, ID_COUNTER, false));
         System.out.println(list.get(ID_COUNTER));
         ID_COUNTER++;
         resp.setStatus(HttpServletResponse.SC_OK);
     }
     @DeleteMapping("account/delete_account")
-    public void deleteAccount(@RequestParam("email") String email, @RequestParam("password") String password, HttpServletResponse resp) {
+    public void deleteAccount(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        JSONObject json =  new JSONObject(new JSONTokener(req.getInputStream()));
+        String password = json.getString("password");
+        String email = json.getString("email");
+
         int id = -1;
         for(Map.Entry<Integer,Account> a : list.entrySet()) {
             if(a.getValue().getEmail().equals(email) && a.getValue().getPsw().equals(password)) {
@@ -68,27 +85,41 @@ public class Controller {
     }
 
     @PostMapping("login")
-    public void login(@RequestParam("email") String email, @RequestParam("password") String password, HttpServletResponse resp) throws IOException {
+    public void login(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Account ac;
         Random rand = new Random();
+
+        JSONObject json =  new JSONObject(new JSONTokener(req.getInputStream()));
+        String password = json.getString("password");
+        String email = json.getString("email");
+
         for(Map.Entry<Integer,Account> e : list.entrySet()) {
             if(e.getValue().getEmail().equals(email) && e.getValue().getPsw().equals(password)) {
                 ac = e.getValue();
-                ac.setToken(ac.getId() != 0 ? String.valueOf(rand.nextInt(10000, 20000)) + e.getKey() : "100000");
+                if(ac.getToken() == null) ac.setToken(String.valueOf(rand.nextInt(10000, 20000)) + e.getKey());
+                resp.setCharacterEncoding("UTF-8");
                 resp.setContentType("application/json");
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.getWriter().println(ac.toJson());
                 resp.getWriter().close();
+                Cookie cookie = new Cookie("remember-me", ac.getToken());
+                cookie.setDomain("localhost");
+                cookie.setPath("/mlkk");
+                resp.addCookie(cookie);
+
                 System.out.println(ac.toJson());
+                System.out.println("Token: " + ac.getToken());
                 return;
             }
         }
-        System.out.println(email + "   " + password);
+        System.out.println("Tried to login: " + email + "   " + password);
         resp.setStatus(HttpServletResponse.SC_CONFLICT);
     }
 
     @PostMapping("account/attend_event")
-    public void attend(@RequestParam("account_id") int accId, @RequestParam("event_id") int eventId, @RequestParam("token") String token, HttpServletResponse resp) throws IOException {
+    public void attend(@RequestParam("account_id") int accId, @RequestParam("event_id") int eventId, HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String token = req.getHeader("remember-me");
+
         for(Map.Entry<Integer,Account> a : list.entrySet()) {
             if(a.getValue().getToken().equals(token) && a.getValue().getId() == accId && events.containsKey(eventId)) {
                 if(a.getValue().getMSignedUpForEvents().containsKey(eventId)) {
@@ -106,15 +137,17 @@ public class Controller {
     }
 
     @PostMapping("account/favour")
-    public void favour(@RequestParam("account_id") int accId, @RequestParam("event_id") int eventId, @RequestParam("token") String token, HttpServletResponse resp) throws IOException {
+    public void favour(@RequestParam("account_id") int accId, @RequestParam("event_id") int eventId, HttpServletRequest req, HttpServletResponse resp) {
+        String token = req.getHeader("remember-me");
+
         for(Map.Entry<Integer,Account> a : list.entrySet()) {
             if(a.getValue().getToken().equals(token) && a.getValue().getId() == accId && events.containsKey(eventId)) {
                 if(a.getValue().getMFavorites().containsKey(eventId)) {
                     a.getValue().getMFavorites().remove(eventId);
-                    System.out.println("Favourite List removed: " + eventId + " " + a.getValue().getMSignedUpForEvents());
+                    System.out.println("Favourite List removed: " + eventId + " " + a.getValue().getMFavorites());
                 } else {
                     a.getValue().getMFavorites().put(eventId, null);
-                    System.out.println("Favourite List added: " + eventId + " " + a.getValue().getMSignedUpForEvents());
+                    System.out.println("Favourite List added: " + eventId + " " + a.getValue().getMFavorites());
                 }
                 resp.setStatus(HttpServletResponse.SC_OK);
                 return;
@@ -124,7 +157,12 @@ public class Controller {
     }
 
     @PostMapping("account/change_password")
-    public void changePassword(@RequestParam("email") String email, @RequestParam("new_password") String newPassword, @RequestParam("old_password") String oldPassword, HttpServletResponse resp) throws IOException {
+    public void changePassword(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        JSONObject json =  new JSONObject(new JSONTokener(req.getInputStream()));
+        String email = json.getString("email");
+        String oldPassword = json.getString("old_password");
+        String newPassword = json.getString("new_password");
+
         for(Map.Entry<Integer,Account> a : list.entrySet()) {
             if(a.getValue().getEmail().equals(email) && a.getValue().getPsw().equals(oldPassword)) {
                 a.getValue().setPsw(newPassword);
@@ -137,7 +175,9 @@ public class Controller {
     }
 
     @GetMapping("event/download_image")
-    public void downloadImage(@RequestParam("event_id") int eventId, @RequestParam("token") String token, HttpServletResponse resp) {
+    public void downloadImage(@RequestParam("event_id") int eventId, HttpServletRequest req, HttpServletResponse resp) {
+        String token = req.getHeader("remember-me");
+
         if(events.containsKey(eventId) && list.values().stream().anyMatch(a -> a.getToken().equals(token))) {
             try(FileInputStream fis = new FileInputStream(eventId + ".png");
                 BufferedInputStream bus = new BufferedInputStream(fis)) {
@@ -174,8 +214,10 @@ public class Controller {
     HashMap<Integer, Account> createAccounts() {
         HashMap<Integer,Account> map = new HashMap<>();
         Random rand = new Random();
-        map.put(0, new Account("Kaleb", "Münch", "muench.kaleb@gmail.com", "Hallo123", 0));
+        map.put(0, new Account("Kaleb", "Münch", "muench.kaleb@gmail.com", "Hallo123", 0, false));
         map.get(0).setToken("100000");
+        map.put(1, new Account("Kaleb", "Münch", "superuser@mail.com", "Hallo123", 1, true));
+        map.get(1).setToken("200000");
         return map;
     }
 
