@@ -13,7 +13,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CyclicBarrier;
 
 @RestController
 @RequestMapping("mlkk")
@@ -177,7 +179,6 @@ public class Controller {
     @GetMapping("event/download_image")
     public void downloadImage(@RequestParam("event_id") int eventId, HttpServletRequest req, HttpServletResponse resp) {
         String token = req.getHeader("remember-me");
-
         if(events.containsKey(eventId) && list.values().stream().anyMatch(a -> a.getToken().equals(token))) {
             try(FileInputStream fis = new FileInputStream(eventId + ".png");
                 BufferedInputStream bus = new BufferedInputStream(fis)) {
@@ -193,6 +194,48 @@ public class Controller {
         } else {
             System.out.println("Image: " + eventId + " download conflict");
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
+        }
+    }
+
+    @PostMapping("event/update_event")
+    public void updateEvent(@RequestParam("event_id") int eventId, @RequestParam("account_id") int accountId, HttpServletRequest req, HttpServletResponse resp) {
+        String token = req.getHeader("remember-me");
+
+        if(token.equals("200000") && events.containsKey(eventId) && accountId == 1) {
+            try {
+                JSONObject object =  new JSONObject(new JSONTokener(req.getInputStream()));
+                String title = object.getString("title");
+                String date = object.getString("date");
+                String desc = object.getString("description");
+                boolean attendeesVis =  object.getBoolean("attendees_visible");
+                boolean dateVis =  object.getBoolean("date_visible");
+                String street = object.optString("street");
+                String postCode = object.optString("post_code");
+                String city = object .optString("city");
+                String house_number = object.optString("house_number");
+
+                for(Map.Entry<Integer, Event> entry : events.entrySet()) {
+                    if(entry.getValue().getMTitle().equals(title)) {
+                       Event event = entry.getValue();
+                       event.setMTitle(title);
+                       event.setMDate(LocalDateTime.parse(date));
+                       event.setMDescription(desc);
+                       event.setMAttendeesVisible(attendeesVis);
+                       event.setMDateVisible(dateVis);
+                       if(event.getMAdress() != null) {
+                           event.getMAdress().setStreet(street);
+                           event.getMAdress().setHNumber(house_number);
+                           event.getMAdress().setCity(city);
+                           event.getMAdress().setPosCode(postCode);
+                       }
+                        System.out.println("Event was updated: " + event.toJson());
+                    }
+                }
+            } catch (IOException e) {
+                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+            }
+        } else {
+        resp.setStatus(HttpServletResponse.SC_CONFLICT);
         }
     }
 
